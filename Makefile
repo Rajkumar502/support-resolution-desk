@@ -1,4 +1,11 @@
-.PHONY: virt-install run test eval clean
+.PHONY: install run test eval ui benchmark evaluate docker-build docker-up docker-down docker-logs clean
+
+# Automatically detect if venv exists; otherwise fallback to global python3 (ideal for CI/CD)
+ifeq ($(wildcard venv/bin/python3),)
+    PYTHON = python3
+else
+    PYTHON = ./venv/bin/python3
+endif
 
 install:
 	python3 -m venv venv
@@ -6,23 +13,22 @@ install:
 	./venv/bin/python3 -m pip install -r requirements.txt
 
 run:
-	./venv/bin/uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
-
+	$(PYTHON) -m uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 
 test:
-	./venv/bin/python3 -m pytest tests/test_classifier.py tests/test_graph.py tests/test_graph_governance.py tests/test_api.py -v -p no:phoenix
+	$(PYTHON) -m pytest tests/test_classifier.py tests/test_graph.py tests/test_graph_governance.py tests/test_api.py -v -p no:phoenix
 
 eval:
-	./venv/bin/python3 tests/evaluate.py
+	$(PYTHON) tests/evaluate.py
 
 ui:
-	./venv/bin/streamlit run app_ui.py
+	$(PYTHON) -m streamlit run app_ui.py
 
 benchmark:
-	./venv/bin/python3 benchmark.py
+	$(PYTHON) benchmark.py
 
 evaluate:
-	./venv/bin/python3 evaluate_rag.py
+	$(PYTHON) evaluate_rag.py
 
 docker-build:
 	docker compose build
