@@ -24,16 +24,20 @@ This application automates customer support tickets through an intelligent workf
 support-resolution-desk/
 ├── src/
 │   ├── agents/            # Specialized Gemini agents (classifier, responder)
-│   ├── api/                # FastAPI backend server
-│   ├── graph/               # LangGraph workflow definitions & nodes
-│   ├── schemas/             # Pydantic data models & state definitions
-│   └── services/            # RAG retrieval & guardrail services
-├── tests/                   # Unit, integration, and governance test cases
-├── app_ui.py                 # Streamlit dashboard interface
-├── Dockerfile                 # Container configuration
-├── docker-compose.yml         # Multi-service container orchestration
-├── Makefile                   # Convenient automation commands
-└── requirements.txt           # Python project dependencies
+│   ├── api/               # FastAPI backend server
+│   ├── config/            # Business support rules (rules.json)
+│   ├── graph/             # LangGraph workflow definitions & nodes
+│   ├── schemas/           # Pydantic data models & state definitions
+│   ├── services/          # RAG retrieval, database, guardrails & rules manager
+│   └── config.py          # Centralized configuration settings
+├── tests/                 # Unit, integration, and governance test cases
+├── app_ui.py              # Streamlit dashboard interface
+├── benchmark.py           # Empirical token & latency benchmarking
+├── evaluate_rag.py        # Gemini-as-a-judge evaluation script
+├── Dockerfile             # Container configuration
+├── docker-compose.yml     # Multi-service container orchestration
+├── Makefile               # Convenient automation commands
+└── requirements.txt       # Python project dependencies
 ```
 
 ---
@@ -45,7 +49,7 @@ support-resolution-desk/
 Ensure you have Python 3.11+ installed. Clone the repository, set up a virtual environment, and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/support-resolution-desk.git
+git clone https://github.com/Rajkumar502/support-resolution-desk.git
 cd support-resolution-desk
 
 python3 -m venv venv
