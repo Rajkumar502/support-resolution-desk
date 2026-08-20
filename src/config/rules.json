@@ -1,0 +1,23 @@
+{
+  "confidence_thresholds": {
+    "order_status": 0.75,
+    "returns": 0.75,
+    "subscriptions": 0.75,
+    "other_complex": 0.50
+  },
+  "force_escalate_categories": [
+    "other_complex"
+  ],
+  "injection_keywords": [
+    "ignore previous instructions",
+    "system prompt",
+    "reveal api key",
+    "output your secret",
+    "disregard previous instructions"
+  ],
+  "auto_responder_subjects": [
+    "out of office",
+    "automatic reply",
+    "autoreply"
+  ]
+}

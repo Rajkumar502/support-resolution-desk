@@ -1,0 +1,6 @@
+{
+  "graphs": {
+    "support_desk": "src.graph.workflow:graph"
+  },
+  "env": ".env"
+}

@@ -1,0 +1,33 @@
+name: Support Resolution Desk CI
+
+on:
+  push:
+    branches: [ "main", "master", "dev" ]
+  pull_request:
+    branches: [ "main", "master", "dev" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run Automated Test Suite via Makefile
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        API_SECRET_KEY: "secret-support-desk-key"
+      run: |
+        make test
