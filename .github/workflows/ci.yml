@@ -20,14 +20,11 @@ jobs:
         python-version: "3.11"
         cache: 'pip'
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install Dependencies via Makefile
+      run: make install
 
     - name: Run Automated Test Suite via Makefile
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         API_SECRET_KEY: "secret-support-desk-key"
-      run: |
-        make test
+      run: make test
