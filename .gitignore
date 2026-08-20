@@ -67,3 +67,8 @@ phoenix.db
 checkpoints.sqlite*
 *.sqlite-wal
 *.sqlite-shm
+
+# Vector database storage (ChromaDB)
+vector_store/
+chroma_db/
+*.sqlite3
