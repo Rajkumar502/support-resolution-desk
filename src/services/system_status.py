@@ -1,5 +1,3 @@
-import random
-
 class MockSystemStatusService:
     """Simulates live infrastructure and cloud service health checks for technical support."""
     

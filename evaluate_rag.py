@@ -25,7 +25,7 @@ def run_custom_evaluation():
         if not query:
             continue
             
-        expected_resp = item.get("expected_category", "order_status")
+        item.get("expected_category", "order_status")
 
         print(f"\n--- Running Graph for Ticket #{idx+1}: '{query[:40]}...' ---")
         initial_state = TicketResolutionState(

@@ -5,7 +5,6 @@ from pathlib import Path
 root_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_dir))
 
-import pytest
 from fastapi.testclient import TestClient
 from src.api.main import app
 from src.config import settings

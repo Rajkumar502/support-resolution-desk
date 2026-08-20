@@ -1,4 +1,3 @@
-import pytest
 from src.agents.classifier import classify_email
 from src.schemas.tickets import SupportCategory, ClassificationResult
 
