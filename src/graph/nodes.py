@@ -1,4 +1,4 @@
-from src.schemas.tickets import TicketResolutionState, TicketMetadata, SupportCategory, ClassificationResult
+from src.schemas.tickets import TicketResolutionState, TicketMetadata, SupportCategory, ClassificationResult, RiskAssessment
 from src.agents.classifier import classify_email
 from src.services.rag import retrieve_knowledge_base_docs
 from src.agents.responder import generate_draft_response
@@ -159,8 +159,15 @@ def answer_composer_node(state: TicketResolutionState) -> TicketResolutionState:
 def confidence_gate_node(state: TicketResolutionState) -> TicketResolutionState:
     """Evaluates confidence score against decoupled rules and handles greetings autonomously."""
     print("--- NODE: CONFIDENCE_GATE_NODE ---")
+    
+    # (Do not check 'not state.confidence_gate_passed' here, since it defaults to False).
+    if state.escalation_reason:
+        state.confidence_gate_passed = False
+        state.audit_trail.append("Confidence gate bypassed: Prior security or risk flag enforced.")
+        return state
+
     category = state.classification.category.value if state.classification else "other_complex"
-    confidence = state.classification.confidence_score if state.classification else 0.0
+    confidence = state.confidence_score if hasattr(state, "confidence_score") and state.confidence_score is not None else (state.classification.confidence_score if state.classification else 0.0)
     text_lower = state.raw_email_text.lower()
     
     # Handle general greetings autonomously
@@ -201,4 +208,49 @@ def handover_node(state: TicketResolutionState) -> TicketResolutionState:
         f"Original Message: {state.raw_email_text}"
     )
     state.audit_trail.append(f"Ticket escalated to human support queue. Reason: {reason}")
+    return state
+
+
+def risk_assessment_node(state: TicketResolutionState) -> TicketResolutionState:
+    """Semantically evaluates the customer email for risk, financial exposure, or abuse."""
+    print("--- NODE: RISK_ASSESSMENT ---")
+    
+    from langchain_core.prompts import ChatPromptTemplate
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    
+    # Use settings.MODEL_NAME as defined in your config.py
+    llm = ChatGoogleGenerativeAI(
+        model=settings.MODEL_NAME,
+        temperature=0.0,
+        google_api_key=settings.GEMINI_API_KEY
+    )
+    structured_llm = llm.with_structured_output(RiskAssessment)
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are an AI safety and risk officer for an e-commerce platform support desk. "
+                   "Analyze the customer message for risk factors such as missing items, broken/damaged goods, "
+                   "financial compensation demands, angry disputes, or potential policy exploits."),
+        ("human", "Customer Message:\n{email_text}")
+    ])
+    
+    chain = prompt | structured_llm
+    
+    try:
+        assessment = chain.invoke({"email_text": state.raw_email_text})
+        state.risk_assessment = assessment
+        
+        # If high risk or requires human approval, automatically force confidence gate failure
+        if assessment.requires_human_approval or assessment.risk_level == "high":
+            state.confidence_gate_passed = False
+            state.escalation_reason = f"High risk detected: {assessment.reasoning}"
+            state.audit_trail.append(f"Risk Guardrail Flagged: {assessment.reasoning} (Routed to Human)")
+        else:
+            state.audit_trail.append(f"Risk Guardrail Passed: Low/Medium risk ({assessment.risk_level}).")
+            
+    except Exception as e:
+        # Fail-safe: if risk check fails for any reason, force human escalation to be safe
+        state.confidence_gate_passed = False
+        state.escalation_reason = f"Risk assessment error fallback: {str(e)}"
+        state.audit_trail.append(f"Risk Guardrail Error: {str(e)} (Fallback to Human)")
+        
     return state

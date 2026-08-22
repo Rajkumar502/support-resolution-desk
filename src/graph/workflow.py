@@ -5,6 +5,7 @@ from src.schemas.tickets import TicketResolutionState
 from src.graph.nodes import (
     ingest_node,
     classify_node,
+    risk_assessment_node,
     refund_agent_node,
     technical_agent_node,
     general_agent_node,
@@ -23,6 +24,7 @@ workflow = StateGraph(TicketResolutionState)
 # Add all nodes
 workflow.add_node("ingest_node", ingest_node)
 workflow.add_node("classify_node", classify_node)
+workflow.add_node("risk_assessment_node", risk_assessment_node)
 workflow.add_node("refund_agent", refund_agent_node)
 workflow.add_node("technical_agent", technical_agent_node)
 workflow.add_node("general_agent", general_agent_node)
@@ -43,6 +45,9 @@ workflow.add_conditional_edges(
     }
 )
 
+# Ingest -> Classify -> Risk Assessment
+workflow.add_edge("classify_node", "risk_assessment_node")
+
 # --- 3-WAY INTENT ROUTER ---
 def route_intent(state: TicketResolutionState) -> str:
     """Routes classified tickets to the appropriate specialized agent branch."""
@@ -57,9 +62,9 @@ def route_intent(state: TicketResolutionState) -> str:
     else:
         return "general_agent"
 
-# Add conditional 3-way routing from classifier
+# Add conditional 3-way routing from the Risk Assessment node
 workflow.add_conditional_edges(
-    "classify_node",
+    "risk_assessment_node",
     route_intent,
     {
         "refund_agent": "refund_agent",
